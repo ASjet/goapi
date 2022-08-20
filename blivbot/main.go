@@ -53,12 +53,14 @@ func main() {
 		log.Printf("Live room status: %s", stat)
 		if stat == live.LIVING {
 			if !sent {
-				li := getLiveInfo(uid)
-				ui = &li.UserInfo
-				log.Printf("%q start living!", li.Name)
-				log.Printf("Title: %q", li.Title)
-				log.Printf("Address: %s", li.Address)
-				sendMessage(li)
+				go func() {
+					li := getLiveInfo(uid)
+					ui = &li.UserInfo
+					log.Printf("%q start living!", li.Name)
+					log.Printf("Title: %q", li.Title)
+					log.Printf("Address: %s", li.Address)
+					sendMessage(li)
+				}()
 				sent = true
 			}
 		} else {
