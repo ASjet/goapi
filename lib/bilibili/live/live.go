@@ -32,25 +32,27 @@ func (s LiveStatus) String() string {
 
 type LiveInfo struct {
 	user.UserInfo
-	Title   string
-	Status  LiveStatus
-	Address string
-	Cover   string
+	Title    string
+	Status   LiveStatus
+	LiveLink string
+	Cover    string
 }
 
 func parser(data map[string]interface{}) *LiveInfo {
+	uid := int(data["uid"].(float64))
 	rid := int(data["room_id"].(float64))
 	return &LiveInfo{
 		UserInfo: user.UserInfo{
-			UID:    int(data["uid"].(float64)),
-			RoomID: rid,
-			Name:   data["uname"].(string),
-			Avatar: data["face"].(string),
+			UID:       uid,
+			RoomID:    rid,
+			Name:      data["uname"].(string),
+			Avatar:    data["face"].(string),
+			SpaceLink: user.SPACE_BASE_URL + strconv.Itoa(uid),
 		},
-		Title:   data["title"].(string),
-		Status:  LiveStatus(data["live_status"].(float64)),
-		Address: LIVEROOM_BASEURL + strconv.Itoa(rid),
-		Cover:   data["cover_from_user"].(string),
+		Title:    data["title"].(string),
+		Status:   LiveStatus(data["live_status"].(float64)),
+		LiveLink: LIVEROOM_BASEURL + strconv.Itoa(rid),
+		Cover:    data["cover_from_user"].(string),
 	}
 }
 
