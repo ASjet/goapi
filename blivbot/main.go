@@ -13,9 +13,9 @@ import (
 	"time"
 )
 
-const MessageTemplate = `<b>"{{.Name}}" Start Living!</b>
+const MessageTemplate = `<u>{{.Name}}</u> <b>Start Living!</b>
 <a href="{{.Cover}}">{{.Title}}</a>
-{{.Address}}
+Link: {{.LiveLink}}
 `
 
 var msg = template.Must(template.New("msg").Parse(MessageTemplate))
@@ -23,7 +23,7 @@ var msg = template.Must(template.New("msg").Parse(MessageTemplate))
 func main() {
 	// Parse commandline arguments
 	if len(os.Args) != 3 {
-		fmt.Fprintf(os.Stderr, "Usage: %s uid duration(second)\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage: %s <uid> <duration(second)>\n", os.Args[0])
 		os.Exit(0)
 	}
 	uid, err := strconv.Atoi(os.Args[1])
@@ -34,42 +34,41 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	monitor(uid, time.Duration(dura))
+}
 
+func monitor(uid int, interval time.Duration) {
 	// Get user info from uid
 	ui := getUserInfo(uid)
 	log.Printf("Monitoring on %q(uid=%d)'s live room(id=%d)", ui.Name, ui.UID, ui.RoomID)
-	log.Printf("Start loop, interval = %d second(s)", dura)
+	log.Printf("Start loop, interval = %d second(s)", interval)
 
-	sent := false
+	lastStat := live.NO_LIVE
 
 	// Start main loop
 	for {
 		// Query live status
 		stat, err := live.GetLiveStatusByRoomID(ui.RoomID)
-		if err != nil {
-			log.Printf("main: %v", err)
+		if err != nil || stat == lastStat {
 			continue
 		}
 		log.Printf("Live room status: %s", stat)
 		if stat == live.LIVING {
-			if !sent {
-				go func() {
-					li := getLiveInfo(uid)
-					ui = &li.UserInfo
-					log.Printf("%q start living!", li.Name)
-					log.Printf("Title: %q", li.Title)
-					log.Printf("Address: %s", li.Address)
-					sendMessage(li)
-				}()
-				sent = true
-			}
+			go func() {
+				li := getLiveInfo(uid)
+				ui = &li.UserInfo
+				log.Printf("%q start living!", li.Name)
+				log.Printf("Title: %q", li.Title)
+				log.Printf("Address: %s", li.LiveLink)
+				sendMessage(li)
+			}()
 		} else {
-			if sent {
+			if lastStat == live.LIVING {
 				log.Printf("%q stop living!", ui.Name)
 			}
-			sent = false
 		}
-		time.Sleep(time.Second * time.Duration(dura))
+		lastStat = stat
+		time.Sleep(time.Second * time.Duration(interval))
 	}
 }
 
@@ -90,9 +89,14 @@ func getLiveInfo(uid int) *live.LiveInfo {
 }
 
 func getUserInfo(uid int) *user.UserInfo {
-	res, err := user.GetUserInfo(uid)
-	if err != nil {
-		log.Fatalf("main: getUserInfo: %v", err)
+	for i := 0; i < 5; i++ {
+		res, err := user.GetUserInfo(uid)
+		if err != nil {
+			log.Printf("main: getUserInfo: %v, retrying...", err)
+			continue
+		}
+		return res
 	}
-	return res
+	log.Fatalf("can not get user info, uid: %d\n", uid)
+	return nil
 }
