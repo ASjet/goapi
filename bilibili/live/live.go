@@ -2,8 +2,8 @@ package live
 
 import (
 	"fmt"
-	"goapi/lib/bilibili/api"
-	"goapi/lib/bilibili/user"
+	"goapi/bilibili/api"
+	"goapi/bilibili/user"
 	"strconv"
 )
 

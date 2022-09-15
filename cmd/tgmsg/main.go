@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"goapi/lib/telegram/bot"
+	"goapi/telegram/bot"
 	"log"
 	"os"
 	"strings"

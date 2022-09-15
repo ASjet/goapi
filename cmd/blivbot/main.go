@@ -3,9 +3,9 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"goapi/lib/bilibili/live"
-	"goapi/lib/bilibili/user"
-	"goapi/lib/telegram/bot"
+	"goapi/bilibili/live"
+	"goapi/bilibili/user"
+	"goapi/telegram/bot"
 	"html/template"
 	"log"
 	"os"
@@ -44,12 +44,20 @@ func monitor(uid int, interval time.Duration) {
 	log.Printf("Start loop, interval = %d second(s)", interval)
 
 	lastStat := live.NO_LIVE
+	errCnt := 0
 
 	// Start main loop
 	for {
 		// Query live status
 		stat, err := live.GetLiveStatusByRoomID(ui.RoomID)
 		if err != nil || stat == lastStat {
+			if err != nil {
+				errCnt++
+			}
+			if errCnt >= 5 {
+				log.Printf("err: %v", err)
+				errCnt = 0
+			}
 			continue
 		}
 		log.Printf("Live room status: %s", stat)

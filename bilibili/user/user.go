@@ -2,7 +2,7 @@ package user
 
 import (
 	"fmt"
-	"goapi/lib/bilibili/api"
+	"goapi/bilibili/api"
 	"strconv"
 )
 
