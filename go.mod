@@ -1,5 +1,7 @@
 module goapi
 
-go 1.19
+go 1.17
 
-require github.com/joho/godotenv v1.4.0
+require github.com/mdp/qrterminal/v3 v3.0.0
+
+require rsc.io/qr v0.2.0 // indirect
