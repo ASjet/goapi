@@ -38,7 +38,7 @@ type LiveInfo struct {
 	Cover    string
 }
 
-func parser(data map[string]interface{}) *LiveInfo {
+func parse(data map[string]interface{}) *LiveInfo {
 	uid := int(data["uid"].(float64))
 	rid := int(data["room_id"].(float64))
 	return &LiveInfo{
@@ -65,7 +65,7 @@ func GetLiveInfoByUIDs(UIDs ...int) (map[int]*LiveInfo, error) {
 	}
 	res := make(map[int]*LiveInfo)
 	for _, uid := range UIDs {
-		res[uid] = parser(data[strconv.Itoa(uid)].(map[string]interface{}))
+		res[uid] = parse(data[strconv.Itoa(uid)].(map[string]interface{}))
 	}
 	return res, nil
 }

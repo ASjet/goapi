@@ -8,7 +8,7 @@ import (
 )
 
 func parse(resp *http.Response) (map[string]interface{}, error) {
-	var res map[string]interface{}
+	res := make(map[string]interface{})
 	json.NewDecoder(resp.Body).Decode(&res)
 	if res["code"] == nil {
 		return nil, fmt.Errorf("parse: %v", res)

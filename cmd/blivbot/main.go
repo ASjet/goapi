@@ -30,18 +30,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	dura, err := strconv.Atoi(os.Args[2])
+	dura, err := time.ParseDuration(os.Args[2])
 	if err != nil {
 		log.Fatal(err)
 	}
-	monitor(uid, time.Duration(dura))
+	monitor(uid, dura)
 }
 
 func monitor(uid int, interval time.Duration) {
 	// Get user info from uid
 	ui := getUserInfo(uid)
 	log.Printf("Monitoring on %q(uid=%d)'s live room(id=%d)", ui.Name, ui.UID, ui.RoomID)
-	log.Printf("Start loop, interval = %d second(s)", interval)
+	log.Printf("Start loop, interval: %s", interval)
 
 	lastStat := live.NO_LIVE
 	errCnt := 0
@@ -53,29 +53,29 @@ func monitor(uid int, interval time.Duration) {
 		if err != nil || stat == lastStat {
 			if err != nil {
 				errCnt++
+				if errCnt >= 5 {
+					log.Printf("err: %v", err)
+					errCnt = 0
+				}
 			}
-			if errCnt >= 5 {
-				log.Printf("err: %v", err)
-				errCnt = 0
-			}
-			continue
-		}
-		log.Printf("Live room status: %s", stat)
-		if stat == live.LIVING {
-			go func() {
-				li := getLiveInfo(uid)
-				ui = &li.UserInfo
-				log.Printf("%q start living!", li.Name)
-				log.Printf("Title: %q", li.Title)
-				log.Printf("Address: %s", li.LiveLink)
-				sendMessage(li)
-			}()
 		} else {
-			if lastStat == live.LIVING {
-				log.Printf("%q stop living!", ui.Name)
+			log.Printf("Live room status updated: %s => %s", lastStat, stat)
+			if stat == live.LIVING {
+				go func() {
+					li := getLiveInfo(uid)
+					ui = &li.UserInfo
+					log.Printf("%q start living!", li.Name)
+					log.Printf("Title: %q", li.Title)
+					log.Printf("Address: %s", li.LiveLink)
+					sendMessage(li)
+				}()
+			} else {
+				if lastStat == live.LIVING {
+					log.Printf("%q stop living!", ui.Name)
+				}
 			}
+			lastStat = stat
 		}
-		lastStat = stat
 		time.Sleep(time.Second * time.Duration(interval))
 	}
 }
@@ -101,6 +101,7 @@ func getUserInfo(uid int) *user.UserInfo {
 		res, err := user.GetUserInfo(uid)
 		if err != nil {
 			log.Printf("main: getUserInfo: %v, retrying...", err)
+			time.Sleep(time.Second)
 			continue
 		}
 		return res
