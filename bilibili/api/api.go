@@ -7,7 +7,47 @@ import (
 	"net/http"
 )
 
-func parse(resp *http.Response) (map[string]interface{}, error) {
+func Get(URL string, cookies ...*http.Cookie) (map[string]interface{}, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", URL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("APIClient.Get: %v", err)
+	}
+	for _, cookie := range cookies {
+		if cookie == nil {
+			continue
+		}
+		req.AddCookie(cookie)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("APIClient.Get: %v", err)
+	}
+	return Parse(resp)
+}
+
+func Post(URL string, Payload map[string]interface{}, cookies ...*http.Cookie) (map[string]interface{}, error) {
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(Payload); err != nil {
+		return nil, fmt.Errorf("Post: %v", err)
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", URL, buf)
+	for _, cookie := range cookies {
+		req.AddCookie(cookie)
+	}
+	req.ParseForm()
+	if err != nil {
+		return nil, fmt.Errorf("Post: %v", err)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Post: %v", err)
+	}
+	return Parse(resp)
+}
+
+func Parse(resp *http.Response) (map[string]interface{}, error) {
 	res := make(map[string]interface{})
 	json.NewDecoder(resp.Body).Decode(&res)
 	if res["code"] == nil {
@@ -18,24 +58,4 @@ func parse(resp *http.Response) (map[string]interface{}, error) {
 	} else {
 		return nil, fmt.Errorf("parse: %v", res["msg"])
 	}
-}
-
-func Get(URL string) (map[string]interface{}, error) {
-	resp, err := http.Get(URL)
-	if err != nil {
-		return nil, fmt.Errorf("Get: %v", err)
-	}
-	return parse(resp)
-}
-
-func Post(URL string, Payload map[string]interface{}) (map[string]interface{}, error) {
-	buf := new(bytes.Buffer)
-	if err := json.NewEncoder(buf).Encode(Payload); err != nil {
-		return nil, fmt.Errorf("Post: %v", err)
-	}
-	resp, err := http.Post(URL, "application/json", buf)
-	if err != nil {
-		return nil, fmt.Errorf("Post: %v", err)
-	}
-	return parse(resp)
 }

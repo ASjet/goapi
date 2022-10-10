@@ -37,7 +37,7 @@ func getQRcode() (string, string, error) {
 	return "", "", fmt.Errorf("getQRcode: type assertion failed: %v", data)
 }
 
-func QRLogin() (*http.Cookie, error) {
+func QRLogin() ([]*http.Cookie, error) {
 	scanUrl, key, err := getQRcode()
 	if err != nil {
 		return nil, fmt.Errorf("QRLogin: %v", err)
@@ -54,14 +54,17 @@ func QRLogin() (*http.Cookie, error) {
 		body := make(map[string]interface{})
 		json.NewDecoder(resp.Body).Decode(&body)
 		if body["status"].(bool) {
-			cookies := resp.Cookies()
-			for _, cookie := range cookies {
-				if cookie.Name == SESSION_COOKIE_NAME {
-					return cookie, nil
-				}
-			}
-			return nil, fmt.Errorf("QRLogin: no cookie %q", SESSION_COOKIE_NAME)
+			return resp.Cookies(), nil
 		}
 		time.Sleep(time.Second * 2)
 	}
+}
+
+func GetCookie(cookies []*http.Cookie, name string) *http.Cookie {
+	for _, cookie := range cookies {
+		if cookie.Name == name {
+			return cookie
+		}
+	}
+	return nil
 }
