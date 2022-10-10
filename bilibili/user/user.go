@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-const INFO_BASE_URL = "http://api.live.bilibili.com/live_user/v1/Master/info?uid="
+const INFO_BASE_URL = "https://api.live.bilibili.com/live_user/v1/Master/info?uid="
 const SPACE_BASE_URL = "https://space.bilibili.com/"
 
 type UserInfo struct {

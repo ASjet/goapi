@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	ROOM_INIT_BASEURL   = "http://api.live.bilibili.com/room/v1/Room/room_init?id="
+	ROOM_INIT_BASEURL   = "https://api.live.bilibili.com/room/v1/Room/room_init?id="
 	STATUS_INFO_BASEURL = "https://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids"
 	LIVEROOM_BASEURL    = "https://live.bilibili.com/"
 	NO_LIVE             = LiveStatus(0)

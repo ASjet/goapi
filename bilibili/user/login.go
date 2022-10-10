@@ -6,16 +6,16 @@ import (
 	"goapi/bilibili/api"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/mdp/qrterminal/v3"
 )
 
 const (
-	GET_LOGIN_URL       = "http://passport.bilibili.com/qrcode/getLoginUrl"
-	GET_LOGIN_INFO      = "http://passport.bilibili.com/qrcode/getLoginInfo"
+	GET_LOGIN_URL       = "https://passport.bilibili.com/qrcode/getLoginUrl"
+	GET_LOGIN_INFO      = "https://passport.bilibili.com/qrcode/getLoginInfo"
 	CONTENT_TYPE        = "application/x-www-form-urlencoded"
 	SESSION_COOKIE_NAME = "SESSDATA"
 )
@@ -38,15 +38,16 @@ func getQRcode() (string, string, error) {
 }
 
 func QRLogin() (*http.Cookie, error) {
-	url, key, err := getQRcode()
+	scanUrl, key, err := getQRcode()
 	if err != nil {
 		return nil, fmt.Errorf("QRLogin: %v", err)
 	}
-	dispQR(url)
-	payload := "oauthKey=" + key
+	dispQR(scanUrl)
+	params := make(url.Values)
+	params.Set("oauthKey", key)
 	log.Print("wait for scanning")
 	for {
-		resp, err := http.Post(GET_LOGIN_INFO, CONTENT_TYPE, strings.NewReader(payload))
+		resp, err := http.PostForm(GET_LOGIN_INFO, params)
 		if err != nil {
 			return nil, fmt.Errorf("QRLogin: %v", err)
 		}
