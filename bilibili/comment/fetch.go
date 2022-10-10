@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"goapi/bilibili/api"
 	"net/http"
+	"strings"
 
 	"github.com/schollz/progressbar/v3"
 )
@@ -69,7 +70,7 @@ func getOnePage(t, oid, ps, pn int, cookies ...*http.Cookie) ([]Comment, error) 
 		res = append(res, Comment{
 			Uid:     uid,
 			Rpid:    rpid,
-			Content: message,
+			Content: strings.ReplaceAll(message, "\n", ""),
 		})
 	}
 	return res, nil
