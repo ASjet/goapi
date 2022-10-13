@@ -21,11 +21,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	replies, err := comment.GetReplies(comment.TYPE_TREND, oid, true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, r := range replies {
-		fmt.Fprintf(of, "%d,%d,%s\n", r.Uid, r.Rpid, r.Content)
+
+	ch := comment.GetReplies2(comment.TYPE_TREND, oid, 1)
+	for replies := range ch {
+		for _, r := range replies {
+			fmt.Fprintf(of, "%d,%d,%s\n", r.Uid, r.Rpid, r.Content)
+		}
 	}
 }

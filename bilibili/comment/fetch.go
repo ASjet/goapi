@@ -96,3 +96,23 @@ func GetReplies(t, oid int, showProgress bool, cookie ...*http.Cookie) ([]Commen
 	}
 	return res, nil
 }
+
+func fetchReplies(t, oid, mod int, ch chan []Comment, cookie ...*http.Cookie) {
+	for pn := 1; ; pn++ {
+		if pn%mod != 0 {
+			continue
+		}
+		batch, _ := getOnePage(t, oid, PAGE_NUM, pn, cookie...)
+		ch <- batch
+		if len(batch) == 0 {
+			break
+		}
+	}
+	close(ch)
+}
+
+func GetReplies2(t, oid, mod int, cookie ...*http.Cookie) chan []Comment {
+	ch := make(chan []Comment, 10)
+	go fetchReplies(t, oid, mod, ch, cookie...)
+	return ch
+}
